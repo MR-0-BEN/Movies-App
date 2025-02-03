@@ -29,7 +29,7 @@ const App = () => {
         throw new Error("Error fetching Movies");
       }
       const data = await res.json();
-      // console.log(data);
+      console.log(data);
 
       if (data.results.length === 0) {
         setErrorMassage(data.Error || "No Movies Found");
@@ -62,7 +62,7 @@ const App = () => {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
         <section className="all-movies">
-          <h2 className="mt-[40px] ">All Movies</h2>
+          <h2 className="mt-[40px]">All Movies</h2>
           {isLoading ? (
             <Spinner />
           ) : errorMassage ? (

@@ -19,11 +19,13 @@ const App = () => {
   const [moviesList, setMoviesList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchMovies = async () => {
+  const fetchMovies = async (query = "") => {
     setIsLoading(true);
     setErrorMassage(null);
     try {
-      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const endpoint = query
+        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
+        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
       const res = await fetch(endpoint, API_OPTIONS);
       if (!res.ok) {
         throw new Error("Error fetching Movies");
@@ -47,8 +49,8 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchMovies();
-  }, []);
+    fetchMovies(searchTerm);
+  }, [searchTerm]);
   return (
     <main>
       <div className="pattern"></div>

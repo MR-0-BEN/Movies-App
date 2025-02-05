@@ -3,7 +3,7 @@ import Search from "./components/Search";
 import Spinner from "./components/Spinner";
 import MovieCard from "./components/MovieCard";
 import { useDebounce } from "react-use";
-import { updateSearchCount } from "./appwrite";
+import { getTrendingMovies, updateSearchCount } from "./appwrite";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -17,10 +17,15 @@ const API_OPTIONS = {
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [errorMassage, setErrorMassage] = useState("");
-  const [moviesList, setMoviesList] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [debounceSearchTerm, setDebounceSearchTerm] = useState("");
+
+  const [moviesList, setMoviesList] = useState([]);
+  const [errorMassage, setErrorMassage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const [trendingMovies, setTrendingMovies] = useState([]);
+  const [isTrendingLoading, setIsTrendingLoading] = useState(false);
+  const [trendingError, setTrendingError] = useState("");
 
   // debounce search term to prevent too many API requests
   useDebounce(() => setDebounceSearchTerm(searchTerm), 700, [searchTerm]);
@@ -58,9 +63,28 @@ const App = () => {
     }
   };
 
+  const fetchTrendingMovies = async () => {
+    setIsTrendingLoading(true);
+    setTrendingError(null);
+    try {
+      const movies = await getTrendingMovies();
+      setTrendingMovies(movies);
+    } catch (error) {
+      console.error(`error fetching Trending Movies: ${error}`);
+      setTrendingError("Error fetching Trending Movies. Please try again later.");
+    } finally {
+      setIsTrendingLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchMovies(debounceSearchTerm);
   }, [debounceSearchTerm]);
+
+  useEffect(() => {
+    fetchTrendingMovies();
+  }, []);
+
   return (
     <main>
       <div className="pattern"></div>
@@ -73,8 +97,25 @@ const App = () => {
           </h1>
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
+        <section className="trending">
+          <h2>Trending Movies</h2>
+          {isTrendingLoading ? (
+            <Spinner />
+          ) : trendingError ? (
+            <p className="text-red-500">{trendingError}</p>
+          ) : (
+            <ul>
+              {trendingMovies.map((movie, index) => (
+                <li key={movie.$id}>
+                  <p>{index + 1}</p>
+                  <img src={movie.poster_url} alt={movie.title} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
         <section className="all-movies">
-          <h2 className="mt-[40px]">All Movies</h2>
+          <h2>All Movies</h2>
           {isLoading ? (
             <Spinner />
           ) : errorMassage ? (
